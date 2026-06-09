@@ -1,4 +1,4 @@
-    const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const config = require('../config/jwt');
@@ -10,8 +10,10 @@ exports.login = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
     
-    db.query('SELECT id, name, email, password, role FROM users WHERE email = ?', [email], async (err, results) => {
+    const query = 'SELECT id, name, email, password, role, profile_photo, cover_photo FROM users WHERE email = ?';
+    db.query(query, [email], async (err, results) => {
         if (err) {
+            console.error('Login error:', err);
             return res.status(500).json({ success: false, message: 'Database error' });
         }
         
@@ -22,7 +24,7 @@ exports.login = async (req, res) => {
         const user = results[0];
         let validPassword = false;
         
-        if (user.password.length === 60 && (user.password.startsWith('$2'))) {
+        if (user.password && (user.password.startsWith('$2') || user.password.startsWith('$2a') || user.password.startsWith('$2y'))) {
             validPassword = await bcrypt.compare(password, user.password);
         } else {
             validPassword = (password === user.password);
@@ -41,7 +43,14 @@ exports.login = async (req, res) => {
         res.json({
             success: true,
             token,
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profile_photo: user.profile_photo || null,
+                cover_photo: user.cover_photo || null
+            }
         });
     });
 };
@@ -55,6 +64,7 @@ exports.register = async (req, res) => {
     
     db.query('SELECT id FROM users WHERE email = ?', [email], (err, results) => {
         if (err) {
+            console.error('Register error:', err);
             return res.status(500).json({ success: false, message: 'Database error' });
         }
         if (results.length > 0) {
@@ -68,6 +78,7 @@ exports.register = async (req, res) => {
             [name, email, hashedPassword, userRole],
             (err, result) => {
                 if (err) {
+                    console.error('Register insert error:', err);
                     return res.status(500).json({ success: false, message: 'Database error' });
                 }
                 res.json({ success: true, message: 'Registration successful', user_id: result.insertId });
@@ -76,12 +87,15 @@ exports.register = async (req, res) => {
 };
 
 exports.me = (req, res) => {
-    db.query('SELECT id, name, email, role FROM users WHERE id = ?', [req.user.id], (err, results) => {
-        if (err) {
-            return res.status(500).json({ success: false, message: 'Database error' });
-        }
-        res.json({ success: true, user: results[0] });
-    });
+    db.query('SELECT id, name, email, role, profile_photo, cover_photo, created_at FROM users WHERE id = ?', 
+        [req.user.id], 
+        (err, results) => {
+            if (err) {
+                console.error('Me error:', err);
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+            res.json({ success: true, user: results[0] });
+        });
 };
 
 exports.logout = (req, res) => {

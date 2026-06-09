@@ -157,13 +157,16 @@ router.post('/', verifyToken, checkRole(['admin', 'cashier', 'customer']), (req,
     });
 });
 
-// ==================== UPDATE STATUS (TAMBAHKAN INI) ====================
+// Update transaction status
 router.put('/:id/status', verifyToken, checkRole(['admin', 'cashier']), (req, res) => {
     const { status } = req.body;
-    const validStatus = ['pending', 'paid', 'cancelled'];
+    const validStatus = ['pending', 'paid', 'cancelled', 'berhasil'];
     
     if (!status || !validStatus.includes(status)) {
-        return res.status(400).json({ success: false, message: 'Invalid status. Must be pending, paid, or cancelled' });
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Invalid status. Must be pending, paid, cancelled, or berhasil' 
+        });
     }
     
     db.query('UPDATE transactions SET status = ? WHERE id = ?', [status, req.params.id], (err, result) => {

@@ -826,8 +826,8 @@ app.get('/api/health', (req, res) => {
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📚 BookShop API is ready!`);
-    console.log(`🔗 API URL: http://localhost:${PORT}/api`);
-    console.log(`🛒 Public API URL: http://localhost:${PORT}/api/public`);
+    console.log(` Server running on port ${PORT}`);
+    console.log(` BookShop API is ready!`);
+    console.log(` API URL: http://localhost:${PORT}/api`);
+    console.log(` Public API URL: http://localhost:${PORT}/api/public`);
 });

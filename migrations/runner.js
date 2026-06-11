@@ -72,7 +72,7 @@ async function runMigrations() {
                 
                 const sql = fs.readFileSync(path.join(__dirname, file), 'utf8');
                 const queries = sql.split(';').filter(q => q.trim());
-                
+                    
                 for (const query of queries) {
                     if (query.trim()) {
                         await connection.execute(query);
